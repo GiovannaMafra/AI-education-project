@@ -6,7 +6,6 @@ import time
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-print("KEY IN USE:", GEMINI_API_KEY)
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY not found.")
 
@@ -35,7 +34,7 @@ def call_llm(prompt: str) -> str:
             json=payload,
             timeout=30,
         )
-        
+
         if response.status_code == 429:
             print(f"limite atingido")
 
