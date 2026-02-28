@@ -14,17 +14,22 @@ def main():
     with open('profiles.json', 'r', encoding = 'utf-8') as file:
         data = json.load(file)
 
+    information = {"age": age, "level": level, "howLearning": howLearning}
+
     #stores max 5 different user profiles
-    if name not in data:
+    if name in data:
+        #conferir se já existe um perfil igual
+        #DUVIDA: Perfis diferentes seriam nomes diferentes? se aparecer o mesmo nome, eu atualizo o perfil ou crio um novo?
+        if data[name] != information:
+            #atualiza o perfil
+            data[name] = information
+    else:
         if len(data) >= 5:
             #remove the oldest one
             oldest_key = next(iter(data))
             del data[oldest_key]
-   
-   #entender melhor isso
-   #esta subescrevendo 
-   #se alguem com mesmo nome tiver outro perfil, vai subescrever
-    data[name] = [{"age": age, "level": level, "howLearning": howLearning}]
+
+        data[name] = information
 
     with open('profiles.json', 'w', encoding= 'utf-8') as file:
         json.dump(data, file, indent=4, ensure_ascii=False)
@@ -32,10 +37,10 @@ def main():
     
     prompt = build_prompt(topic, name, age, level, howLearning)
     
-    mock = Mock()
-    result = mock.generate(prompt)
+    #mock = Mock()
+    #result = mock.generate(prompt)
 
-    #result = call_llm(prompt)
+    result = call_llm(prompt)
 
     print("\nResposta:\n")
     print(result)
