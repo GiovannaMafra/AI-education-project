@@ -27,42 +27,29 @@ def call_llm(prompt: str) -> str:
             }
         ]
     }
-    
 
-    max_retries = 1
-    delay_time = 5
+    try:
+        response = requests.post(
+            url,
+            headers=headers,
+            json=payload,
+            timeout=30,
+        )
+        
+        if response.status_code == 429:
+            print(f"limite atingido")
 
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(
-                url,
-                headers=headers,
-                json=payload,
-                timeout=30,
-            )
+        response.raise_for_status()
+        data = response.json()
 
-            print("Status code:", response.status_code)
-            print("Response body:", response.text)
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
 
-            #chave ainda não está funcionando 
-            #está dando limite de requests nessa chave 
-            if response.status_code == 429:
-                print(f"limite atingido")
-                time.sleep(delay_time)
-                continue
+        return text.strip()
 
-            response.raise_for_status()
-            data = response.json()
+    except requests.exceptions.RequestException as e:
+        print(f"API request error: {e}")
+        return "Error: Failed to generate content."
 
-            text = data["candidates"][0]["content"]["parts"][0]["text"]
-
-            return text.strip()
-
-        except requests.exceptions.RequestException as e:
-            print(f"API request error: {e}")
-            return "Error: Failed to generate content."
-
-        except (KeyError, IndexError):
-            print("Unexpected API response structure.")
-            return "Error: Unexpected API response."
-    return "erro: max retries atingido"
+    except (KeyError, IndexError):
+        print("Unexpected API response structure.")
+        return "Error: Unexpected API response."

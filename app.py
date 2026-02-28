@@ -1,4 +1,4 @@
-#from llm.user import call_llm
+from llm.user import call_llm
 from prompt_engine.builder import build_prompt
 from prompt_engine.mock import Mock
 
@@ -10,8 +10,12 @@ def main():
     howLearning = input("Digite seu estilo de aprendizado: ")
 
     prompt = build_prompt(topic, name, age, level, howLearning)
-    mock = Mock()
-    result = mock.generate(prompt)
+    
+    #mock = Mock()
+    #result = mock.generate(prompt)
+
+    result = call_llm(prompt)
+
     print("\nResposta:\n")
     print(result)
 
