@@ -8,22 +8,28 @@ from prompt_engine.mock import Mock
 import json
 from datetime import datetime, timezone
 import os
+from flask import Flask, render_template, request
 
-def main():
-    topic = input("Digite o assunto: ")
-    name = input("Digite seu nome: ")
+app = Flask(__name__)
 
-    try:
-        age = int(input("Digite sua idade: "))
-    except ValueError:
-        age = int(input("Digite número válido: "))
+@app.route("/")
+def index():
+    return render_template("index.html")
 
-    level = input("Digite seu nivel (iniciante, intermediario ou avançado): ")
-    while (level != "iniciante" and level != "intermediario" and level != "avançado"):
-        level = input("Digite nivel válido (iniciante, intermediario ou avançado): ")
-    howLearning = input("Digite seu estilo de aprendizado: ")
-    while (howLearning != "visual" and howLearning != "auditivo" and howLearning != "leitura-escrita" and howLearning != "cinestésico"):
-        howLearning = input("Digite um estilo válido (visual, auditivo, leitura-escrita ou cinestésico): ")
+
+@app.route("/generate", methods=["POST"])
+def generate():
+    name = request.form["name"]
+    topic = request.form["topic"]
+    age = int(request.form["age"])
+    level = request.form["level"]
+    howLearning = request.form["howLearning"]
+
+    outputs = generate_main(name, age, level, howLearning, topic)
+
+    return render_template("result.html", outputs=outputs)
+
+def generate_main(name, age, level, howLearning, topic):
 
     #storing user profiles
 
@@ -61,7 +67,26 @@ def main():
     with open('profiles.json', 'w', encoding= 'utf-8') as file:
         json.dump(data, file, indent=4, ensure_ascii=False)
 
-    
+    #storing responses 
+    if not os.path.exists("response_history.json"):
+        data = []
+    else:
+        with open('response_history.json', 'r', encoding = 'utf-8') as file:
+            try:
+                data = json.load(file)
+            except json.JSONDecodeError:
+                data = []
+
+    #including cache 
+
+    for entry in data:
+        if entry["name"] == name and entry["topic"] == topic and entry["profile"]["age"] == age and entry["profile"]["level"] == level and entry["profile"]["howLearning"] == howLearning:
+            #já exixte um resultado gerado para aquele aluno 
+            #retorna o resultado ja existente
+            return entry["outputs"]
+        
+    #ainda não foi gerado
+
     prompt_base = build_prompt_base(name, age, level, howLearning)
 
     #explicação
@@ -76,32 +101,10 @@ def main():
     #resumo
     result_resumo = call_llm(build_visual_resumo(topic, prompt_base))
 
-    #mock = Mock()
-    #result = mock.generate(prompt)
-
-    if not os.path.exists("response_history.json"):
-        data = []
-    else:
-        with open('response_history.json', 'r', encoding = 'utf-8') as file:
-            try:
-                data = json.load(file)
-            except json.JSONDecodeError:
-                data = []
-
-    #permitir gerar mesmo conteúdo com diferentes versões de prompts? 1 versão é uma geração completa (com os 4 tipos)
-    #foi gerado para a mesma pessoa e com o mesmo tema + 1 versao
-    
-    version = 1
-    for entry in data:
-        #como permito atualizações, preciso garantir que é o mesmo estudante (com o mesmo perfil) e usando o mesmo topico que vai gerar uma versão diferente, se não a analise futura seria prejudicada
-        if entry["name"] == name and entry["topic"] == topic and entry["profile"]["age"] == age and entry["profile"]["level"] == level and entry["profile"]["howLearning"] == howLearning:
-            version += 1
-
     result_data = {
         "timestamp": time_now,
         "name": name,
         "topic": topic,
-        "version": version,
         "profile": {
             "age": age,
             "level": level,
@@ -118,11 +121,11 @@ def main():
     data.append(result_data)
     with open('response_history.json', 'w', encoding= 'utf-8') as file:
         json.dump(data, file, indent=4, ensure_ascii=False)
+    
+    return result_data["outputs"]
 
-    #print("\nResposta:\n")
-    #print(result)
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=True)
 
     

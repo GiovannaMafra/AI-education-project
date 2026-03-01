@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sistema Educacional IA</title>
+</head>
+<body>
+
+<h2>Gerador de Conteúdo Educacional</h2>
+
+<form action="/generate" method="post">
+
+    Nome: <input type="text" name="name" required><br><br>
+
+    Idade: <input type="number" name="age" required><br><br>
+
+    Nível:
+    <select name="level">
+        <option value="iniciante">Iniciante</option>
+        <option value="intermediario">Intermediário</option>
+        <option value="avançado">Avançado</option>
+    </select><br><br>
+
+    Estilo de Aprendizado:
+    <select name="howLearning">
+        <option value="visual">Visual</option>
+        <option value="auditivo">Auditivo</option>
+        <option value="leitura-escrita">Leitura-Escrita</option>
+        <option value="cinestésico">Cinestésico</option>
+    </select><br><br>
+
+    Tópico: <input type="text" name="topic" required><br><br>
+
+    <button type="submit">Gerar Conteúdo</button>
+
+</form>
+
+</body>
+</html>
