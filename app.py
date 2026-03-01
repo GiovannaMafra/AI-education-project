@@ -6,13 +6,18 @@ from prompt_engine.builder import build_questions
 from prompt_engine.builder import build_visual_resumo
 from prompt_engine.mock import Mock
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 
 def main():
     topic = input("Digite o assunto: ")
     name = input("Digite seu nome: ")
-    age = int(input("Digite sua idade: "))
+
+    try:
+        age = int(input("Digite sua idade: "))
+    except ValueError:
+        age = int(input("Digite número válido: "))
+
     level = input("Digite seu nivel (iniciante, intermediario ou avançado): ")
     while (level != "iniciante" and level != "intermediario" and level != "avançado"):
         level = input("Digite nivel válido (iniciante, intermediario ou avançado): ")
@@ -31,7 +36,7 @@ def main():
             except json.JSONDecodeError:
                 data = {}
 
-    time_now = datetime.now(datetime.timezone.utc).isoformat()
+    time_now = datetime.now(timezone.utc).isoformat()
     information = {"age": age, "level": level, "howLearning": howLearning, "last_modified": time_now}
 
     #stores max 5 different user profiles
@@ -61,7 +66,6 @@ def main():
 
     #explicação
     result_explication = call_llm(build_explication(topic, prompt_base))
-    #adicionar a resposta no json?
 
     #exemplos
     result_examples = call_llm(build_examples(topic, prompt_base))
@@ -75,12 +79,45 @@ def main():
     #mock = Mock()
     #result = mock.generate(prompt)
 
+    if not os.path.exists("response_history.json"):
+        data = []
+    else:
+        with open('response_history.json', 'r', encoding = 'utf-8') as file:
+            try:
+                data = json.load(file)
+            except json.JSONDecodeError:
+                data = []
+
+    #permitir gerar mesmo conteúdo com diferentes versões de prompts? 1 versão é uma geração completa (com os 4 tipos)
+    #foi gerado para a mesma pessoa e com o mesmo tema + 1 versao
+    
+    version = 1
+    for entry in data:
+        #como permito atualizações, preciso garantir que é o mesmo estudante (com o mesmo perfil) e usando o mesmo topico que vai gerar uma versão diferente, se não a analise futura seria prejudicada
+        if entry["name"] == name and entry["topic"] == topic and entry["profile"]["age"] == age and entry["profile"]["level"] == level and entry["profile"]["howLearning"] == howLearning:
+            version += 1
+
     result_data = {
-        "explicacao": result_explication,
-        "exemplos": result_examples,
-        "perguntas": result_question,
-        "resumo": result_resumo
+        "timestamp": time_now,
+        "name": name,
+        "topic": topic,
+        "version": version,
+        "profile": {
+            "age": age,
+            "level": level,
+            "howLearning": howLearning
+        },
+        "outputs": {
+            "explicacao": result_explication,
+            "exemplos": result_examples,
+            "perguntas": result_question,
+            "resumo": result_resumo
+        }
     }
+
+    data.append(result_data)
+    with open('response_history.json', 'w', encoding= 'utf-8') as file:
+        json.dump(data, file, indent=4, ensure_ascii=False)
 
     #print("\nResposta:\n")
     #print(result)
