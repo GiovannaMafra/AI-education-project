@@ -6,32 +6,50 @@ from prompt_engine.builder import build_questions
 from prompt_engine.builder import build_visual_resumo
 from prompt_engine.mock import Mock
 import json
+from datetime import datetime
+import os
 
 def main():
     topic = input("Digite o assunto: ")
     name = input("Digite seu nome: ")
-    age = input("Digite sua idade: ")
-    level = input("Digite seu nivel: ")
+    age = int(input("Digite sua idade: "))
+    level = input("Digite seu nivel (iniciante, intermediario ou avançado): ")
+    while (level != "iniciante" and level != "intermediario" and level != "avançado"):
+        level = input("Digite nivel válido (iniciante, intermediario ou avançado): ")
     howLearning = input("Digite seu estilo de aprendizado: ")
+    while (howLearning != "visual" and howLearning != "auditivo" and howLearning != "leitura-escrita" and howLearning != "cinestésico"):
+        howLearning = input("Digite um estilo válido (visual, auditivo, leitura-escrita ou cinestésico): ")
 
     #storing user profiles
-    with open('profiles.json', 'r', encoding = 'utf-8') as file:
-        data = json.load(file)
 
-    information = {"age": age, "level": level, "howLearning": howLearning}
+    if not os.path.exists("profiles.json"):
+        data = {}
+    else:
+        with open('profiles.json', 'r', encoding = 'utf-8') as file:
+            try:
+                data = json.load(file)
+            except json.JSONDecodeError:
+                data = {}
+
+    time_now = datetime.now(datetime.timezone.utc).isoformat()
+    information = {"age": age, "level": level, "howLearning": howLearning, "last_modified": time_now}
 
     #stores max 5 different user profiles
     if name in data:
         #conferir se já existe um perfil igual
-        #DUVIDA: Perfis diferentes seriam nomes diferentes? se aparecer o mesmo nome, eu atualizo o perfil ou crio um novo?
-        if data[name] != information:
-            #atualiza o perfil
-            data[name] = information
+        #vou usar o nome como ID, ou seja, se outro perfil com o mesmo nome aparecer, seria uma atualização
+        data[name] = information
     else:
         if len(data) >= 5:
-            #remove the oldest one
-            oldest_key = next(iter(data))
-            del data[oldest_key]
+            #remove the oldest based on timestamp
+            oldest_time = None
+            oldest_name = None
+            for n, profile in data.items():
+                time = profile["last_modified"]
+                if oldest_time is None or time < oldest_time:
+                    oldest_time = time
+                    oldest_name = n
+            del data[oldest_name]
 
         data[name] = information
 
