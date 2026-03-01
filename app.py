@@ -9,6 +9,7 @@ import json
 from datetime import datetime, timezone
 import os
 from flask import Flask, render_template, request
+from typing import Any
 
 app = Flask(__name__)
 
@@ -21,7 +22,10 @@ def index():
 def generate():
     name = request.form["name"]
     topic = request.form["topic"]
-    age = int(request.form["age"])
+    try:
+        age = int(request.form["age"])
+    except ValueError:
+        return "Idade Inválida"
     level = request.form["level"]
     howLearning = request.form["howLearning"]
 
@@ -29,64 +33,25 @@ def generate():
 
     return render_template("result.html", outputs=outputs)
 
-def generate_main(name, age, level, howLearning, topic):
 
-    #storing user profiles
-
-    if not os.path.exists("profiles.json"):
-        data = {}
-    else:
-        with open('profiles.json', 'r', encoding = 'utf-8') as file:
-            try:
-                data = json.load(file)
-            except json.JSONDecodeError:
-                data = {}
-
-    time_now = datetime.now(timezone.utc).isoformat()
-    information = {"age": age, "level": level, "howLearning": howLearning, "last_modified": time_now}
-
-    #stores max 5 different user profiles
-    if name in data:
-        #conferir se já existe um perfil igual
-        #vou usar o nome como ID, ou seja, se outro perfil com o mesmo nome aparecer, seria uma atualização
-        data[name] = information
-    else:
-        if len(data) >= 5:
-            #remove the oldest based on timestamp
-            oldest_time = None
-            oldest_name = None
-            for n, profile in data.items():
-                time = profile["last_modified"]
-                if oldest_time is None or time < oldest_time:
-                    oldest_time = time
-                    oldest_name = n
-            del data[oldest_name]
-
-        data[name] = information
-
-    with open('profiles.json', 'w', encoding= 'utf-8') as file:
-        json.dump(data, file, indent=4, ensure_ascii=False)
-
-    #storing responses 
-    if not os.path.exists("response_history.json"):
-        data = []
-    else:
-        with open('response_history.json', 'r', encoding = 'utf-8') as file:
-            try:
-                data = json.load(file)
-            except json.JSONDecodeError:
-                data = []
-
-    #including cache 
-
-    for entry in data:
-        if entry["name"] == name and entry["topic"] == topic and entry["profile"]["age"] == age and entry["profile"]["level"] == level and entry["profile"]["howLearning"] == howLearning:
-            #já exixte um resultado gerado para aquele aluno 
-            #retorna o resultado ja existente
-            return entry["outputs"]
-        
-    #ainda não foi gerado
-
+def load_data(path: str, default: any) -> any:
+    if not os.path.exists(path):
+        return default
+    try:
+        with open(path, 'r', encoding = 'utf-8') as file:
+            return json.load(file)
+    except json.JSONDecodeError:
+            return default
+            
+def save_data(path: str, data: any) -> bool:
+    try:
+        with open(path, 'w', encoding= 'utf-8') as file:
+            json.dump(data, file, indent=4, ensure_ascii=False)
+            return True
+    except OSError:
+        return False
+    
+def generate_new(name: str, age: int,  level: str, howLearning: str, topic: str, time_now: str) -> dict[str, Any]:
     prompt_base = build_prompt_base(name, age, level, howLearning)
 
     #explicação
@@ -117,10 +82,56 @@ def generate_main(name, age, level, howLearning, topic):
             "resumo": result_resumo
         }
     }
+    return result_data
 
-    data.append(result_data)
-    with open('response_history.json', 'w', encoding= 'utf-8') as file:
-        json.dump(data, file, indent=4, ensure_ascii=False)
+def generate_main(name, age, level, howLearning, topic):
+
+    #storing user profiles
+
+    data_profiles = load_data("profiles.json", {})
+
+    time_now = datetime.now(timezone.utc).isoformat()
+    information = {"age": age, "level": level, "howLearning": howLearning, "last_modified": time_now}
+
+    #stores max 5 different user profiles
+    if name in data_profiles:
+        #conferir se já existe um perfil igual
+        #vou usar o nome como ID, ou seja, se outro perfil com o mesmo nome aparecer, seria uma atualização
+        data_profiles[name] = information
+    else:
+        if len(data_profiles) >= 5:
+            #remove the oldest based on timestamp
+            oldest_time = None
+            oldest_name = None
+            for n, profile in data_profiles.items():
+                time = profile["last_modified"]
+                if oldest_time is None or time < oldest_time:
+                    oldest_time = time
+                    oldest_name = n
+            del data_profiles[oldest_name]
+
+        data_profiles[name] = information
+
+    if not save_data("profiles.json", data_profiles):
+        print("Não foi possivel salvar o Perfil")
+
+    #storing responses 
+    data_responses = load_data("response_history.json", [])
+
+    #including cache 
+
+    for entry in data_responses:
+        if entry["name"] == name and entry["topic"] == topic and entry["profile"]["age"] == age and entry["profile"]["level"] == level and entry["profile"]["howLearning"] == howLearning:
+            #já exixte um resultado gerado para aquele aluno 
+            #retorna o resultado ja existente
+            return entry["outputs"]
+        
+    #ainda não foi gerado
+
+    result_data = generate_new(name, age, level, howLearning, topic, time_now)
+    data_responses.append(result_data)
+    if not save_data("response_history.json", data_responses):
+        print("Não foi possivel salvar a Resposta")
     
     return result_data["outputs"]
 
