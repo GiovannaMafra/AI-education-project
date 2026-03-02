@@ -7,6 +7,11 @@
 
 <h2>Resultado Gerado</h2>
 
+{% for version, content in outputs.items() %}
+
+<hr>
+<h2>Versão {{ version }}</h2>
+
 <h3>Explicação</h3>
 <p>{{ outputs.explicacao }}</p>
 
@@ -18,6 +23,8 @@
 
 <h3>Resumo</h3>
 <p>{{ outputs.resumo }}</p>
+
+{% endfor %}
 
 <br>
 <a href="/">Voltar</a>

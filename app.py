@@ -22,6 +22,7 @@ def index():
 def generate():
     name = request.form["name"]
     topic = request.form["topic"]
+    prompt_option = request.form["prompt_option"]
     try:
         age = int(request.form["age"])
     except ValueError:
@@ -29,7 +30,7 @@ def generate():
     level = request.form["level"]
     howLearning = request.form["howLearning"]
 
-    outputs = generate_main(name, age, level, howLearning, topic)
+    outputs = generate_main(name, age, level, howLearning, topic, prompt_option)
 
     return render_template("result.html", outputs=outputs)
 
@@ -51,23 +52,24 @@ def save_data(path: str, data: any) -> bool:
     except OSError:
         return False
     
-def generate_new_response(name: str, age: int,  level: str, howLearning: str, topic: str, time_now: str) -> dict[str, Any]:
+def generate_new_response(name: str, age: int,  level: str, howLearning: str, topic: str, time_now: str, version: str) -> dict[str, Any]:
     prompt_base = build_prompt_base(name, age, level, howLearning)
 
     #explicação
-    result_explication = call_llm(build_explication(topic, prompt_base))
+    result_explication = call_llm(build_explication(topic, prompt_base, version))
 
     #exemplos
-    result_examples = call_llm(build_examples(topic, prompt_base))
+    result_examples = call_llm(build_examples(topic, prompt_base, version))
 
     #perguntas
-    result_question = call_llm(build_questions(topic, prompt_base))
+    result_question = call_llm(build_questions(topic, prompt_base, version))
 
     #resumo
-    result_resumo = call_llm(build_visual_resumo(topic, prompt_base))
+    result_resumo = call_llm(build_visual_resumo(topic, prompt_base, version))
 
     result_data = {
         "timestamp": time_now,
+        "prompt_version": version,
         "name": name,
         "topic": topic,
         "profile": {
@@ -84,8 +86,8 @@ def generate_new_response(name: str, age: int,  level: str, howLearning: str, to
     }
     return result_data
 
-def generate_main(name, age, level, howLearning, topic):
-
+def verify_profile(name, age, level, howLearning, topic):
+    
     #storing user profiles
 
     data_profiles = load_data("profiles.json", {})
@@ -112,26 +114,42 @@ def generate_main(name, age, level, howLearning, topic):
     if not save_data("profiles.json", data_profiles):
         print("Não foi possivel salvar o Perfil")
 
+def verify_response(name, age, level, howLearning, topic, version):
+    time_now = datetime.now(timezone.utc).isoformat()
     #storing responses 
     data_responses = load_data("response_history.json", [])
 
     #including cache 
 
     for entry in data_responses:
-        if entry["name"] == name and entry["topic"] == topic and entry["profile"]["age"] == age and entry["profile"]["level"] == level and entry["profile"]["howLearning"] == howLearning:
+        if entry["name"] == name and entry["topic"] == topic and entry["profile"]["age"] == age and entry["profile"]["level"] == level and entry["profile"]["howLearning"] == howLearning and entry["profile"]["prompt_version"] == version:
             #já exixte um resultado gerado para aquele aluno 
             #retorna o resultado ja existente
             return entry["outputs"]
         
     #ainda não foi gerado
 
-    result_data = generate_new_response(name, age, level, howLearning, topic, time_now)
+    result_data = generate_new_response(name, age, level, howLearning, topic, time_now, version)
     data_responses.append(result_data)
     if not save_data("response_history.json", data_responses):
         print("Não foi possivel salvar a Resposta")
     
     return result_data["outputs"]
 
+
+def generate_main(name, age, level, howLearning, topic, prompt_option):
+
+    verify_profile(name, age, level, howLearning, topic)
+
+    if prompt_option == "Compare":
+        return {
+            "v1": verify_response(name, age, level, howLearning, topic, "1"),
+            "v2": verify_response(name, age, level, howLearning, topic, "2")
+        }
+    else:
+        return{
+            "result": verify_response(name, age, level, howLearning, topic, prompt_option)
+        }
 
 if __name__ == "__main__":
     app.run(debug=True)
