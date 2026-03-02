@@ -51,7 +51,7 @@ def save_data(path: str, data: any) -> bool:
     except OSError:
         return False
     
-def generate_new(name: str, age: int,  level: str, howLearning: str, topic: str, time_now: str) -> dict[str, Any]:
+def generate_new_response(name: str, age: int,  level: str, howLearning: str, topic: str, time_now: str) -> dict[str, Any]:
     prompt_base = build_prompt_base(name, age, level, howLearning)
 
     #explicação
@@ -94,23 +94,20 @@ def generate_main(name, age, level, howLearning, topic):
     information = {"age": age, "level": level, "howLearning": howLearning, "last_modified": time_now}
 
     #stores max 5 different user profiles
-    if name in data_profiles:
-        #conferir se já existe um perfil igual
-        #vou usar o nome como ID, ou seja, se outro perfil com o mesmo nome aparecer, seria uma atualização
-        data_profiles[name] = information
-    else:
-        if len(data_profiles) >= 5:
-            #remove the oldest based on timestamp
-            oldest_time = None
-            oldest_name = None
-            for n, profile in data_profiles.items():
-                time = profile["last_modified"]
-                if oldest_time is None or time < oldest_time:
-                    oldest_time = time
-                    oldest_name = n
-            del data_profiles[oldest_name]
+    #conferir se já existe um perfil igual
+    #vou usar o nome como ID, ou seja, se outro perfil com o mesmo nome aparecer, seria uma atualização
+    if name not in data_profiles and len(data_profiles) >= 5:
+        #remove the oldest based on timestamp
+        oldest_time = None
+        oldest_name = None
+        for n, profile in data_profiles.items():
+            time = profile["last_modified"]
+            if oldest_time is None or time < oldest_time:
+                oldest_time = time
+                oldest_name = n
+        del data_profiles[oldest_name]
 
-        data_profiles[name] = information
+    data_profiles[name] = information #atualização
 
     if not save_data("profiles.json", data_profiles):
         print("Não foi possivel salvar o Perfil")
@@ -128,7 +125,7 @@ def generate_main(name, age, level, howLearning, topic):
         
     #ainda não foi gerado
 
-    result_data = generate_new(name, age, level, howLearning, topic, time_now)
+    result_data = generate_new_response(name, age, level, howLearning, topic, time_now)
     data_responses.append(result_data)
     if not save_data("response_history.json", data_responses):
         print("Não foi possivel salvar a Resposta")
