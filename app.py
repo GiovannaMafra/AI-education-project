@@ -25,7 +25,7 @@ def generate():
     prompt_option = request.form["prompt_option"]
     try:
         age = int(request.form["age"])
-    except ValueError:
+    except (ValueError, KeyError):
         return "Idade Inválida"
     level = request.form["level"]
     howLearning = request.form["howLearning"]
@@ -35,7 +35,7 @@ def generate():
     return render_template("result.html", outputs=outputs)
 
 
-def load_data(path: str, default: any) -> any:
+def load_data(path: str, default: any) -> Any:
     if not os.path.exists(path):
         return default
     try:
@@ -96,8 +96,8 @@ def verify_profile(name, age, level, howLearning, topic):
     information = {"age": age, "level": level, "howLearning": howLearning, "last_modified": time_now}
 
     #stores max 5 different user profiles
-    #conferir se já existe um perfil igual
-    #vou usar o nome como ID, ou seja, se outro perfil com o mesmo nome aparecer, seria uma atualização
+    #Nome como ID. Confere se outro perfil com o mesmo nome aparecer, seria uma atualização
+    #Caso não esteja armazenado ainda, retira o que foi modificado a mais tempo
     if name not in data_profiles and len(data_profiles) >= 5:
         #remove the oldest based on timestamp
         oldest_time = None
@@ -122,12 +122,12 @@ def verify_response(name, age, level, howLearning, topic, version):
     #including cache 
 
     for entry in data_responses:
-        if entry["name"] == name and entry["topic"] == topic and entry["profile"]["age"] == age and entry["profile"]["level"] == level and entry["profile"]["howLearning"] == howLearning and entry["profile"]["prompt_version"] == version:
+        if entry["name"] == name and entry["topic"] == topic and entry["profile"]["age"] == age and entry["profile"]["level"] == level and entry["profile"]["howLearning"] == howLearning and entry["prompt_version"] == version:
             #já exixte um resultado gerado para aquele aluno 
             #retorna o resultado ja existente
             return entry["outputs"]
         
-    #ainda não foi gerado
+    #Caso não esteja no cache, gera nova resposta e salva
 
     result_data = generate_new_response(name, age, level, howLearning, topic, time_now, version)
     data_responses.append(result_data)
