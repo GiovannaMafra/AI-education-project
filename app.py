@@ -141,15 +141,22 @@ def generate_main(name, age, level, howLearning, topic, prompt_option):
 
     verify_profile(name, age, level, howLearning, topic)
 
+    outputs = {
+        "v1": None,
+        "v2": None
+    }
+
     if prompt_option == "Compare":
-        return {
-            "v1": verify_response(name, age, level, howLearning, topic, "1"),
-            "v2": verify_response(name, age, level, howLearning, topic, "2")
-        }
-    else:
-        return{
-            "result": verify_response(name, age, level, howLearning, topic, prompt_option)
-        }
+        outputs["v1"] = verify_response(name, age, level, howLearning, topic, "1")
+        outputs["v2"] = verify_response(name, age, level, howLearning, topic, "2")
+
+    elif prompt_option == "v1":
+        outputs["v1"] = verify_response(name, age, level, howLearning, topic, "1")
+
+    elif prompt_option == "v2":
+        outputs["v2"] = verify_response(name, age, level, howLearning, topic, "2")
+
+    return outputs
 
 if __name__ == "__main__":
     app.run(debug=True)

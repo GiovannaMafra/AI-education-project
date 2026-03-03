@@ -5,29 +5,23 @@
 </head>
 <body>
 
-<h2>Resultado Gerado</h2>
+<h1>Resultado Gerado</h1>
 
-{% for version, content in outputs.items() %}
+{% if outputs.v1 %}
+    <h2>Versão 1</h2>
+    <p><strong>Explicação:</strong> {{ outputs.v1.explicacao }}</p>
+    <p><strong>Exemplos:</strong> {{ outputs.v1.exemplos }}</p>
+    <p><strong>Perguntas:</strong> {{ outputs.v1.perguntas }}</p>
+    <p><strong>Resumo:</strong> {{ outputs.v1.resumo }}</p>
+{% endif %}
 
-<hr>
-<h2>Versão {{ version }}</h2>
-
-<h3>Explicação</h3>
-<p>{{ outputs.explicacao }}</p>
-
-<h3>Exemplos</h3>
-<p>{{ outputs.exemplos }}</p>
-
-<h3>Perguntas</h3>
-<p>{{ outputs.perguntas }}</p>
-
-<h3>Resumo</h3>
-<p>{{ outputs.resumo }}</p>
-
-{% endfor %}
-
-<br>
-<a href="/">Voltar</a>
+{% if outputs.v2 %}
+    <h2>Versão 2</h2>
+    <p><strong>Explicação:</strong> {{ outputs.v2.explicacao }}</p>
+    <p><strong>Exemplos:</strong> {{ outputs.v2.exemplos }}</p>
+    <p><strong>Perguntas:</strong> {{ outputs.v2.perguntas }}</p>
+    <p><strong>Resumo:</strong> {{ outputs.v2.resumo }}</p>
+{% endif %}
 
 </body>
 </html>
