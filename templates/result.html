@@ -1,27 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
+    <meta charset="UTF-8">
     <title>Resultado</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 20px; color: #333; }
+        .content-box { background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 30px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #2c3e50; }
+        h2 { color: #2980b9; margin-top: 40px; }
+        h3 { color: #16a085; background: #e8f8f5; padding: 5px 10px; border-left: 5px solid #16a085; }
+        pre code { background: #2d3436; color: #dfe6e9; padding: 15px; display: block; border-radius: 5px; overflow-x: auto; font-family: 'Courier New', Courier, monospace; }
+        hr { border: 0; border-top: 1px solid #ccc; margin: 20px 0; }
+    </style>
 </head>
 <body>
 
 <h1>Resultado Gerado</h1>
 
-{% if outputs.v1 %}
-    <h2>Versão 1</h2>
-    <p><strong>Explicação:</strong> {{ outputs.v1.explicacao }}</p>
-    <p><strong>Exemplos:</strong> {{ outputs.v1.exemplos }}</p>
-    <p><strong>Perguntas:</strong> {{ outputs.v1.perguntas }}</p>
-    <p><strong>Resumo:</strong> {{ outputs.v1.resumo }}</p>
-{% endif %}
+<div id="main-content">
+    {% for version, data in outputs.items() %}
+        <h2>
+            {% if version == 'v1' %}
+                Versão 1 - Inicial (Direta)
+            {% elif version == 'v2' %}
+                Versão 2 - Otimizada (Chain-of-Thought)
+            {% else %}
+                {{ version | upper }}
+            {% endif %}
+        </h2>
+        
+        <div class="content-box">
+            <h3>Explicação Conceitual</h3>
+            <div class="markdown-content">{{ data.explicacao | safe }}</div>
 
-{% if outputs.v2 %}
-    <h2>Versão 2</h2>
-    <p><strong>Explicação:</strong> {{ outputs.v2.explicacao }}</p>
-    <p><strong>Exemplos:</strong> {{ outputs.v2.exemplos }}</p>
-    <p><strong>Perguntas:</strong> {{ outputs.v2.perguntas }}</p>
-    <p><strong>Resumo:</strong> {{ outputs.v2.resumo }}</p>
-{% endif %}
+            <hr>
+
+            <h3>Exemplos Práticos</h3>
+            <div class="markdown-content">{{ data.exemplos | safe }}</div>
+
+            <hr>
+
+            <h3>Perguntas de Reflexão</h3>
+            <div class="markdown-content">{{ data.perguntas | safe }}</div>
+
+            <hr>
+
+            <h3>Resumo Visual</h3>
+            <div class="markdown-content">{{ data.resumo | safe }}</div>
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+    document.querySelectorAll('.markdown-content').forEach(block => {
+        const rawText = block.innerHTML;
+        block.innerHTML = marked.parse(rawText);
+    });
+</script>
 
 </body>
 </html>

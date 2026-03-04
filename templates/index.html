@@ -1,45 +1,128 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema Educacional IA</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            max-width: 600px; 
+            margin: 40px auto; 
+            padding: 20px; 
+            color: #333;
+            background-color: #f4f7f6;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h2 { 
+            color: #2c3e50; 
+            text-align: center;
+            border-bottom: 2px solid #16a085;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #2c3e50;
+        }
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box; 
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            background-color: #16a085;
+            color: white;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #1abc9c;
+        }
+        .footer-note {
+            font-size: 0.85em;
+            color: #7f8c8d;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
 
-<h2>Gerador de Conteúdo Educacional</h2>
+<div class="container">
+    <h2>Gerador de Conteúdo Educacional</h2>
 
-<form action="/generate" method="post">
+    <form action="/generate" method="post">
 
-    Nome: <input type="text" name="name" required><br><br>
+        <div class="form-group">
+            <label for="name">Nome do Aluno:</label>
+            <input type="text" id="name" name="name" placeholder="Ex: Juliana" required>
+        </div>
 
-    Idade: <input type="number" name="age" required><br><br>
+        <div class="form-group">
+            <label for="age">Idade:</label>
+            <input type="number" id="age" name="age" placeholder="Ex: 20" required>
+        </div>
 
-    Nível:
-    <select name="level">
-        <option value="iniciante">Iniciante</option>
-        <option value="intermediario">Intermediário</option>
-        <option value="avançado">Avançado</option>
-    </select><br><br>
+        <div class="form-group">
+            <label for="level">Nível de Conhecimento:</label>
+            <select id="level" name="level">
+                <option value="iniciante">Iniciante</option>
+                <option value="intermediario">Intermediário</option>
+                <option value="avançado">Avançado</option>
+            </select>
+        </div>
 
-    Estilo de Aprendizado:
-    <select name="howLearning">
-        <option value="visual">Visual</option>
-        <option value="auditivo">Auditivo</option>
-        <option value="leitura-escrita">Leitura-Escrita</option>
-        <option value="cinestésico">Cinestésico</option>
-    </select><br><br>
+        <div class="form-group">
+            <label for="howLearning">Estilo de Aprendizado:</label>
+            <select id="howLearning" name="howLearning">
+                <option value="visual">Visual</option>
+                <option value="auditivo">Auditivo</option>
+                <option value="leitura-escrita">Leitura-Escrita</option>
+                <option value="cinestésico">Cinestésico</option>
+            </select>
+        </div>
 
-    Tópico: <input type="text" name="topic" required><br><br>
+        <div class="form-group">
+            <label for="topic">Tópico de Estudo:</label>
+            <input type="text" id="topic" name="topic" placeholder="Ex: Artes Marciais" required>
+        </div>
 
-    Versão do Prompt:
-    <select name="prompt_option">
-        <option value="v2" selected>Versão Otimizada (v2 - padrão)</option>
-        <option value="v1">Versão Inicial (v1)</option>
-        <option value="Compare">Comparar v1 e v2</option>
-    </select><br><br>
+        <div class="form-group">
+            <label for="prompt_option">Estratégia de Prompt:</label>
+            <select id="prompt_option" name="prompt_option">
+                <option value="v2" selected>Versão Otimizada (Chain-of-Thought)</option>
+                <option value="v1">Versão Básica (Instrução Direta)</option>
+                <option value="Compare">Comparar Versões (v1 vs v2)</option>
+            </select>
+        </div>
 
-    <button type="submit">Gerar Conteúdo</button>
+        <button type="submit">Gerar Material Personalizado</button>
 
-</form>
+    </form>
 
 </body>
 </html>

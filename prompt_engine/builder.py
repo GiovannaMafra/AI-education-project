@@ -7,7 +7,13 @@ def build_prompt_base(name: str, age: int,  level: str, howLearning: str) -> str
     context = f"Você está ensinando para {name}, que tem {age} e que tem o nível de conhecimento {level} no assunto e prefere aprender de forma {howLearning}."
 
     #formatting
-    format = "Organize todas as respostas com títulos claros, subtítulos e listas numeradas quando necessário."
+    format = "Regras de formatação obrigatórias:\n"
+    "- Use Markdown estrito.\n"
+    "- Use '#' para títulos principais e '##' para subtítulos.\n"
+    "- Use '**texto**' para negrito em termos importantes.\n"
+    "- Use '---' para criar linhas horizontais separando as seções.\n"
+    "- Pule uma linha entre parágrafos e itens de lista.\n"
+    "- Para o resumo visual, use blocos de código (```) para manter o alinhamento do ASCII."
     
     return persona + "\n" + context + "\n" + format
 
